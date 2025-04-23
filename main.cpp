@@ -3,6 +3,82 @@
 #include <string>
 using namespace std;
 
+struct Unit {
+	int Owner; //for either player
+	int id;
+	int row;
+	int col;
+	int hp;
+	int att;
+	int def;
+	int move;
+	int cost;
+	char img;
+};
+
+class Infantry : public Unit{
+	public:
+		Infantry(int owner, int id){
+			Owner = owner;
+			id = id;
+			row = 0;
+			col=0;
+			hp= 10;
+			att = 1;
+			def = 1;
+			move = 1;
+			cost = 2;
+			img = "i";
+		}
+};
+
+class Armor : public Unit {
+	public:
+		Armor (int owner, int id){
+			Owner = owner;
+			id = id;
+			row = 0;
+			col =0;
+			hp = 15;
+			att = 2;
+			def = 2;
+			move = 2;
+			cost = 4;
+			img = "A";
+		}
+};
+
+class Scout : public Unit {
+	public:
+		Scout(int owner, int id){
+			Owner = owner;
+			id = id;
+			row = 0;
+			col = 0;
+			hp = 15;
+			att = 1;
+			def = 1;
+			move = 3;
+			cost = 2;
+			img = "s";
+		}
+};
+
+class Artillery : public Unit{
+	public:
+		Artillery(int owner, int id){
+			Owner = owner;
+			id = id;
+			row = 0;
+			col = 0;
+			hp = 5;
+			att = 3;
+			def = 1;
+			move = 1;
+			cost = 5;
+			img = "R";
+		}
+};
 
 class Map {
 
@@ -61,13 +137,191 @@ class Map {
 
 };
 
+class Player {
+	public:
+		int id;
+		int money;
+		vector<Unit*> units;
+		int objRow;
+		int objCol;
+		vector<pair<char,int>> placedCount;
+
+		Player(int PId, int startMoney){
+			id = PId;
+			money = startMoney;
+			objRow = 0;
+			objCol = 0;
+		}
+
+		int incCount(char img){
+			for (int i = 0; i< (int)placeCount.size(); i++){
+				if(placedCount[i].first == img){
+					placedCount[i].second++;
+					return placedCount[i].second;
+				}
+			}
+			placedCount.push_back(make_pair(img,1));
+			return 1;
+		}
+
+		Unit* findUnit(string tok){
+			for (Unit* u : units){
+				if (u->img == tok[0] && to_string(u->id) == tok.subtract(1)) {
+					M.clear(u->row,u->col);
+					money += u->cost;
+					delete u;
+					units.erase(units.begin() +i);
+					return true;
+				}
+			}
+			return false;
+		}
+};
+
+
 int main(){
 	Map m;
 	//m.display();
-	//Player P1;
-	//Player P2;
-	int playerTurn = 1;
+	Player P1(1,20);
+	Player P2(2,20);
+	int turn = 1;
+	void promptCoords(string &msg, int &r, int &c, int pid, bool half){
+		while(true) {
+			cout<<msg<<" row: "; cin>>r;
+			cout<<"col: "; cin>>c;
+			if(!map.isInBounds(r,c)){
+				cout<<"Out of Bounds\n";
+				continue;}
+			if(half){
+				if(pid == 1 && (r<0||r>6)){
+					cout<<"Rows 0-6\n";
+					continue;
+				}
+				if(pid == 2 && (r<8||r>14)){
+					cout<<"Rows 8-14\n";
+					continue;
+				}
+				break;
+			}
+		}
+		void placeObjectives(){
+			int r;
+			int c;
+			map.display();
+			cout<<"P1 Place O1\n";
+			promptCoord("Objective",r,c,1,true);
+			p1.objRow = r;
+			p1.objCol= c;
+			map.place(r,c,"O1");
 
+			map.display();
+			cout<<"P2 place O2\n";
+			promptCoord("Objective",r,c,2,true);
+			p2.objRow = r;
+			p2.objCol = c;
+			map.place(r,c,"O2");
+		}
+		void purchasePhase(Player &P){
+			char cmd;
+			while(true){
+				map.display();
+				cout<<"P"<<P.id<<" $"<<P.money<<"b - buy r - remove e - end\n> ";
+				cin>>cmd;
+				if(cmd=='e') break;
+				if(cmd=='b'){
+					cout<<"0:Infantry, 1:Armor, 2:Scout, 3:Artillery\n";
+					int idx;
+					cin>>idx;
+					Unit* u=nullptr;
+					if(idx==0) u = new Infantry(P.id,P.incCount('I'));
+					else if(idx ==1) u = new Armor(P.id,P.incCount('A'));
+					else if(idx ==2) u = new Scout(P.id,P.incCount('S'));
+					else if(idx ==3) u = new Artillery(P.id,P.incCount('R'));
+					else{
+						cout<<"Invalid Input\n";
+						continue;}
+					if(u->cost>P.money){
+						cout<<"Not enough money\n";
+						delete u;
+						continue;}
+					int rr,cc;
+					promptCoord("Place",rr,cc,P.id,true);
+					if(!map.isEmpty(rr,cc)){
+						cout<<"Occupied\n";
+						delete u;
+						continue;
+					}
+					P.money-=u->cost;
+				        u->row ==rr; 
+					u->col = cc;
+					P.units.push_back(u);
+					string tok="";
+					tok+=u->img;
+					tok+=to_string(u->id);
+					map.place(rr,cc,tok);
+				}
+				else if(cmd=='r'){
+					cout<<"Remove token: ";
+					string tok;
+					cin>>tok;
+					if(!P.removeUnit(tok,map)){
+						cout<<"Fail\n";
+					}
+				}
+				else cout<<"Unknown command\n";
+			}
+		}
+		void play(){
+			placeObjectives();
+			purchasePhase(p1);
+			purchasePhase(p2);
+			while(true){
+				map.display();
+				Player *current;
+				Player *other;
+				if(turn ==1){
+					current = &p1;
+					other = &p2;
+				} else{
+					current = &p2;
+					other = &p1;
+				}
+
+				cout << "Player " << current ->id<< "'s turn" << endl;
+				int actions = 3;
+
+				for (int i =0; i<actions; i++){
+					cout<< "Choose action: b - buy or e - end turn" << endl;
+					cout<< "> ";
+					char action;
+					cin >> action;
+					if(action == 'e'){
+						break;}
+					else if(action =='b'){
+						purchasePhase(*current);
+					} else{
+						cout<< "Invalid action" << endl;
+						i--;
+					}
+				}
+
+				for (Unit* u: current->units){
+					if(u->row == other->objRow && u-> col == other->objCol){
+						map.display();
+						cout<<"Player " << current->id<< " captures objective and wins!" << endl;
+						return;
+					}
+				}
+
+				if (turn == 1){
+					turn = 2;
+				} else{
+					turn = 1;
+				}
+			}
+		}
+	};
+	play();
 	return 0;
 
 }
