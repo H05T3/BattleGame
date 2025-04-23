@@ -122,7 +122,7 @@ class Map {
 				return false;
 			return (grid[r][c] == ".");
 		}
-		bool place(int r, int c, string &tok){
+		bool place(int r, int c, string tok){
 			if(isEmpty(r,c)){
 				grid[r][c] = tok;
 				return true;
@@ -210,7 +210,7 @@ class Game{
 	int turn;
 
 
-	void promptCoords(string &msg, int &r, int &c, int pid, bool half){
+	void promptCoords(string msg, int &r, int &c, int pid, bool half){
 		while(true) {
 			cout<<msg<<" row: "; cin>>r;
 			cout<<"col: "; cin>>c;
@@ -229,93 +229,93 @@ class Game{
 				break;
 			}
 		}
-		void placeObjectives(){
-			int r;
-			int c;
+	}
+	void placeObjectives(){
+		int r;
+		int c;
+		map.display();
+		cout<<"P1 Place O1\n";
+		promptCoords("Objective",r,c,1,true);
+		P1.objRow = r;
+		P1.objCol= c;
+		map.place(r,c,"O1");
+		map.display();
+		cout<<"P2 place O2\n";
+		promptCoords("Objective",r,c,2,true);
+		P2.objRow = r;
+		P2.objCol = c;
+		map.place(r,c,"O2");
+	}
+	void purchasePhase(Player &P){
+		char cmd;
+		while(true){
 			map.display();
-			cout<<"P1 Place O1\n";
-			promptCoord("Objective",r,c,1,true);
-			p1.objRow = r;
-			p1.objCol= c;
-			map.place(r,c,"O1");
-
-			map.display();
-			cout<<"P2 place O2\n";
-			promptCoord("Objective",r,c,2,true);
-			p2.objRow = r;
-			p2.objCol = c;
-			map.place(r,c,"O2");
-		}
-		void purchasePhase(Player &P){
-			char cmd;
-			while(true){
-				map.display();
-				cout<<"P"<<P.id<<" $"<<P.money<<"b - buy r - remove e - end\n> ";
-				cin>>cmd;
-				if(cmd=='e') break;
-				if(cmd=='b'){
-					cout<<"0:Infantry, 1:Armor, 2:Scout, 3:Artillery\n";
-					int idx;
-					cin>>idx;
-					Unit* u=nullptr;
-					if(idx==0) u = new Infantry(P.id,P.incCount('I'));
-					else if(idx ==1) u = new Armor(P.id,P.incCount('A'));
-					else if(idx ==2) u = new Scout(P.id,P.incCount('S'));
-					else if(idx ==3) u = new Artillery(P.id,P.incCount('R'));
-					else{
-						cout<<"Invalid Input\n";
-						continue;}
-					if(u->cost>P.money){
-						cout<<"Not enough money\n";
-						delete u;
-						continue;}
-					int rr,cc;
-					promptCoord("Place",rr,cc,P.id,true);
-					if(!map.isEmpty(rr,cc)){
-						cout<<"Occupied\n";
-						delete u;
-						continue;
-					}
-					P.money-=u->cost;
-				        u->row ==rr; 
-					u->col = cc;
-					P.units.push_back(u);
-					string tok="";
-					tok+=u->img;
-					tok+=to_string(u->id);
-					map.place(rr,cc,tok);
+			cout<<"P"<<P.id<<" $"<<P.money<<"\nb - buy r - remove e - end\n> ";
+			cin>>cmd;
+			if(cmd=='e') break;
+			if(cmd=='b'){
+				cout<<"0:Infantry, 1:Armor, 2:Scout, 3:Artillery\n";
+				int idx;
+				cin>>idx;
+				Unit* u=nullptr;
+				if(idx==0) u = new Infantry(P.id,P.incCount('I'));
+				else if(idx ==1) u = new Armor(P.id,P.incCount('A'));
+				else if(idx ==2) u = new Scout(P.id,P.incCount('S'));
+				else if(idx ==3) u = new Artillery(P.id,P.incCount('R'));
+				else{
+					cout<<"Invalid Input\n";
+					continue;}
+				if(u->cost>P.money){
+					cout<<"Not enough money\n";
+					delete u;
+					continue;}
+				int rr,cc;
+				promptCoords("Place",rr,cc,P.id,true);
+				if(!map.isEmpty(rr,cc)){
+					cout<<"Occupied\n";
+					delete u;
+					continue;
 				}
-				else if(cmd=='r'){
-					cout<<"Remove token: ";
-					string tok;
-					cin>>tok;
-					if(!P.removeUnit(tok,map)){
-						cout<<"Fail\n";
-					}
+				P.money-=u->cost;
+			        u->row ==rr; 
+				u->col = cc;
+				P.units.push_back(u);
+				string tok="";
+				tok+=u->img;
+				tok+=to_string(u->id);
+				map.place(rr,cc,tok);
+			}
+			else if(cmd=='r'){
+				cout<<"Remove token: ";
+				string tok;
+				cin>>tok;
+				if(!P.removeUnit(tok,map)){
+					cout<<"Fail\n";
 				}
-				else cout<<"Unknown command\n";
+			}
+			else{ cout<<"Unknown command\n";
 			}
 		}
 	}
 	public:
 		Game()
-			:map(15,15),p1(1,20),p2(2,20),turn(1)
+			:map(15,15),P1(1,20),P2(2,20),turn(1)
 		{}
 
 		void play(){
 			placeObjectives();
-			purchasePhase(p1);
-			purchasePhase(p2);
+			purchasePhase(P1);
+			purchasePhase(P2);
 			while(true){
 				map.display();
 				Player *current;
 				Player *other;
 				if(turn ==1){
-					current = &p1;
-					other = &p2;
+					current = &P1;
+					other = &P2;
 				} else{
-					current = &p2;
-					other = &p1;
+					current = &P2;
+					other = &P1;
 				}
 
 				cout << "Player " << current ->id<< "'s turn" << endl;
