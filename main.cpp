@@ -26,11 +26,16 @@ class Map {
 			cout << "   ";
 			for(int c=0; c<cols; c++){
 				cout << c << " ";
+				if(c<10){cout<<" ";}
 			}
+			cout<<"\n";
+
 			for(int r= 0;r<rows;r++){
 				cout<< r << " ";
+				if( r<10){ cout<<" ";}
 				for (int c=0; c<cols;c++){
-					cout<<grid[r][c]<< " ";}
+					cout<<grid[r][c]<< "  ";}
+				cout<<"\n";
 			}
 		}
 		bool isInBounds(int r, int c){
@@ -39,7 +44,7 @@ class Map {
 		bool isEmpty(int r, int c){
 			if (!isInBounds(r,c))
 				return false;
-			return (gric[r][c] == ".");
+			return (grid[r][c] == ".");
 		}
 		bool place(int r, int c, string &tok){
 			if(isEmpty(r,c)){
@@ -58,10 +63,10 @@ class Map {
 
 int main(){
 	Map m;
-	m.display();
+	//m.display();
 	//Player P1;
 	//Player P2;
-	int player Turn 1;
+	int playerTurn = 1;
 
 	return 0;
 
