@@ -28,7 +28,7 @@ class Infantry : public Unit{
 			def = 1;
 			move = 1;
 			cost = 2;
-			img = "i";
+			img = 'I';
 		}
 };
 
@@ -44,7 +44,7 @@ class Armor : public Unit {
 			def = 2;
 			move = 2;
 			cost = 4;
-			img = "A";
+			img = 'A';
 		}
 };
 
@@ -60,7 +60,7 @@ class Scout : public Unit {
 			def = 1;
 			move = 3;
 			cost = 2;
-			img = "s";
+			img = 'S';
 		}
 };
 
@@ -76,7 +76,7 @@ class Artillery : public Unit{
 			def = 1;
 			move = 1;
 			cost = 5;
-			img = "R";
+			img = 'R';
 		}
 };
 
@@ -154,7 +154,7 @@ class Player {
 		}
 
 		int incCount(char img){
-			for (int i = 0; i< (int)placeCount.size(); i++){
+			for (int i = 0; i< (int)placedCount.size(); i++){
 				if(placedCount[i].first == img){
 					placedCount[i].second++;
 					return placedCount[i].second;
@@ -166,7 +166,7 @@ class Player {
 
 		Unit* findUnit(string tok){
 			for (Unit* u : units){
-				if (u->img == tok[0] && to_string(u->id) == tok.subtract(1)) {
+				if (u->img == tok[0] && to_string(u->id) == tok.substr(1)) {
 					M.clear(u->row,u->col);
 					money += u->cost;
 					delete u;
