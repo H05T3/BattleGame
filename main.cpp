@@ -19,8 +19,8 @@ struct Unit {
 class Infantry : public Unit{
 	public:
 		Infantry(int owner, int id){
-			Owner = owner;
-			id = id;
+			this->Owner = owner;
+			this->id = id;
 			row = 0;
 			col=0;
 			hp= 10;
@@ -35,8 +35,8 @@ class Infantry : public Unit{
 class Armor : public Unit {
 	public:
 		Armor (int owner, int id){
-			Owner = owner;
-			id = id;
+			this->Owner = owner;
+			this->id = id;
 			row = 0;
 			col =0;
 			hp = 15;
@@ -51,8 +51,8 @@ class Armor : public Unit {
 class Scout : public Unit {
 	public:
 		Scout(int owner, int id){
-			Owner = owner;
-			id = id;
+			this->Owner = owner;
+			this->id = id;
 			row = 0;
 			col = 0;
 			hp = 15;
@@ -67,8 +67,8 @@ class Scout : public Unit {
 class Artillery : public Unit{
 	public:
 		Artillery(int owner, int id){
-			Owner = owner;
-			id = id;
+			this->Owner = owner;
+			this->id = id;
 			row = 0;
 			col = 0;
 			hp = 5;
@@ -136,6 +136,10 @@ class Map {
 		}
 
 };
+struct CountEntry{
+	char img;
+	int count;
+};
 
 class Player {
 	public:
@@ -144,9 +148,9 @@ class Player {
 		vector<Unit*> units;
 		int objRow;
 		int objCol;
-		vector<pair<char,int>> placedCount;
+		vector<CountEntry> placedCount;
 
-		Player(int PId, int startMoney){
+		Player(int PId = 1, int startMoney= 20){
 			id = PId;
 			money = startMoney;
 			objRow = 0;
@@ -155,20 +159,39 @@ class Player {
 
 		int incCount(char img){
 			for (int i = 0; i< (int)placedCount.size(); i++){
-				if(placedCount[i].first == img){
-					placedCount[i].second++;
-					return placedCount[i].second;
+				if(placedCount[i].img == img){
+					placedCount[i].count++;
+					return placedCount[i].count;
 				}
 			}
-			placedCount.push_back(make_pair(img,1));
+			CountEntry e;
+			e.img = img;
+			e.count =1;
+			placedCount.push_back(e);
 			return 1;
 		}
 
-		Unit* findUnit(string tok){
-			for (Unit* u : units){
-				if (u->img == tok[0] && to_string(u->id) == tok.substr(1)) {
-					M.clear(u->row,u->col);
-					money += u->cost;
+		Unit* findUnit(string &tok){
+			for (int i = 0; i<(int)units.size();i++){
+				Unit* u = units[i];
+				string check = "";
+				check+= u->img;
+				check+= to_string(u->id);
+				if(check ==tok){
+					return u;
+				}
+			}
+			return nullptr;
+		}
+		bool removeUnit(const string &tok, Map &map){
+			for(int i= 0; i<(int)units.size();i++){
+				Unit* u = units[i];
+				string check = "";
+				check+= u->img;
+				check+= to_string(u->id);
+				if(check ==tok){
+					map.clear(u->row, u->col);
+					money+=u->cost;
 					delete u;
 					units.erase(units.begin() +i);
 					return true;
@@ -179,12 +202,14 @@ class Player {
 };
 
 
-int main(){
-	Map m;
+class Game{
+	Map map;
 	//m.display();
-	Player P1(1,20);
-	Player P2(2,20);
-	int turn = 1;
+	Player P1;
+	Player P2;
+	int turn;
+
+
 	void promptCoords(string &msg, int &r, int &c, int pid, bool half){
 		while(true) {
 			cout<<msg<<" row: "; cin>>r;
@@ -271,6 +296,12 @@ int main(){
 				else cout<<"Unknown command\n";
 			}
 		}
+	}
+	public:
+		Game()
+			:map(15,15),p1(1,20),p2(2,20),turn(1)
+		{}
+
 		void play(){
 			placeObjectives();
 			purchasePhase(p1);
@@ -320,8 +351,11 @@ int main(){
 				}
 			}
 		}
-	};
-	play();
-	return 0;
+};
 
+int main(){
+	Game game;
+	game.play();
+	return 0;
 }
+
